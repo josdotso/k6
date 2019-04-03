@@ -11,8 +11,8 @@ sudo apt install -y \
   ca-certificates \
   curl \
   dnsutils \
-  kernel-headers-$(uname -r) \
-  kernel-modules-$(uname -r) \
+  linux-headers-$(uname -r) \
+  linux-modules-$(uname -r) \
   lxd \
   lxd-client \
   nmap \

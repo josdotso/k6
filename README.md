@@ -1,5 +1,5 @@
 # k6
-IPv6-only Kubernetes -> LXD -> Ubuntu 18.04 Bento Box -> Vagrant
+IPv6-only Kubernetes -> DNS64 -> NAT64 -> Ubuntu 18.04 LXD Containers -> LXD -> Ubuntu 18.04 Bento Box -> Vagrant
 
 ## Host Requirements
 
