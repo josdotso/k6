@@ -11,14 +11,6 @@ config:
 
 networks:
 
-- name: lxdbr0v4
-  description: "Public IPv4 Bridge"
-  managed: false
-  type: bridge
-  config:
-    ipv4.address: auto
-    ipv6.address: none
-
 - name: lxdbr0v6
   description: "Public IPv6 Bridge"
   managed: false
@@ -35,53 +27,6 @@ storage_pools:
   driver: dir
 
 profiles:
-
-- name: n64
-  description: "DNS64, NAT64"
-  config:
-    boot.autostart: "true"
-    environment.http_proxy: ""
-    linux.kernel_modules: ip_tables,ip6_tables,netlink_diag,nf_nat,overlay
-    security.nesting: "true"
-    security.privileged: "true"
-    user.network_mode: ""
-    raw.lxc: |
-      lxc.apparmor.profile=unconfined
-      lxc.cap.drop=
-      lxc.cgroup.devices.allow=a
-      lxc.mount.auto=proc:rw sys:rw
-    user.user-data: |
-       #cloud-config
-       runcmd:
-       - [ /vagrant/n64/provision.sh ]
-
-  devices:
-    eth0:
-      name: eth0
-      nictype: bridged
-      parent: lxdbr0v4
-      type: nic
-    eth1:
-      name: eth1
-      nictype: bridged
-      parent: lxdbr0v6
-      type: nic
-    root:
-      path: /
-      pool: default
-      type: disk
-    lib-modules:
-      path: /lib/modules
-      source: /lib/modules
-      type: disk
-    usr-src:
-      path: /usr/src
-      source: /usr/src
-      type: disk
-    vagrant:
-      path: /vagrant
-      source: /vagrant
-      type: disk
 
 - name: master1
   description: "Kubernetes Master #1"
