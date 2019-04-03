@@ -83,7 +83,7 @@ profiles:
       source: /vagrant
       type: disk
 
-- name: k6-master1
+- name: master1
   description: "Kubernetes Master #1"
   config:
     boot.autostart: "true"
@@ -100,7 +100,7 @@ profiles:
     user.user-data: |
        #cloud-config
        runcmd:
-       - [ /vagrant/k6-master1/provision.sh ]
+       - [ /vagrant/master1/provision.sh ]
   devices:
     eth0:
       name: eth0
