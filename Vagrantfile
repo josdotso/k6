@@ -3,19 +3,6 @@
 
 Vagrant.configure("2") do |config|
 
-  # Install plugins.
-#  required_plugins = %w( vagrant-cachier, vagrant-proxyconf, vagrant-disksize )
-#  _retry = false
-#  required_plugins.each do |plugin|
-#    unless Vagrant.has_plugin? plugin
-#      system "vagrant plugin install #{plugin}"
-#      _retry=true
-#    end
-#  end
-#  if (_retry)
-#    exec "vagrant " + ARGV.join(' ')
-#  end
-
   config.vm.box = "bento/ubuntu-18.04"
 
   config.vm.network "public_network",
@@ -36,4 +23,13 @@ Vagrant.configure("2") do |config|
     path: "provision.sh",
     privileged: false
 
+  if Vagrant.has_plugin?("vagrant-cachier")
+    # Copy/Paste from: https://github.com/fgrehm/vagrant-cachier#quick-start
+    #
+    # Configure cached packages to be shared between instances of the same base box.
+    # More info on http://fgrehm.viewdocs.io/vagrant-cachier/usage
+    config.cache.scope = :box
+
+    # For more information please check http://docs.vagrantup.com/v2/synced-folders/basic_usage.html
+  end
 end
