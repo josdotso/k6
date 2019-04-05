@@ -12,12 +12,15 @@ config:
 networks:
 
 - name: lxdbr0v6
-  description: "Public IPv6 Bridge"
+  description: "IPv6 Bridge"
   managed: false
   type: bridge
   config:
     ipv4.address: none
     ipv6.address: auto
+    raw.dnsmasq: |
+      no-resolv
+      server=::1#1053
 
 storage_pools:
 
@@ -33,7 +36,7 @@ profiles:
   config:
     boot.autostart: "true"
     environment.http_proxy: ""
-    linux.kernel_modules: ip_tables,ip6_tables,netlink_diag,nf_nat,overlay
+    linux.kernel_modules: br_netfilter,ip_tables,ip6_tables,ip_vs,ip_vs_rr,ip_vs_wrr,ip_vs_sh,netlink_diag,nf_nat,overlay,xt_conntrack
     security.nesting: "true"
     security.privileged: "true"
     user.network_mode: ""
@@ -67,4 +70,12 @@ profiles:
     vagrant:
       path: /vagrant
       source: /vagrant
+      type: disk
+    aadisable:  ## ref: https://github.com/juju-solutions/bundle-canonical-kubernetes/wiki/Deploying-on-LXD
+      path: /sys/module/nf_conntrack/parameters/hashsize
+      source: /dev/null
+      type: disk
+    aadisable1:  ## ref: https://github.com/juju-solutions/bundle-canonical-kubernetes/wiki/Deploying-on-LXD
+      path: /sys/module/apparmor/parameters/enabled
+      source: /dev/null
       type: disk

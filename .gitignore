@@ -1,2 +1,3 @@
 .vagrant/
 resolv.conf.custom
+admin.conf

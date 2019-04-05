@@ -19,6 +19,29 @@ sudo apt install -y \
   software-properties-common \
   vim
 
+## Disable swap (required for kubelet)
+sudo swapoff -a
+
+## Ensure br_netfilter kernel module
+## is loaded on every reboot.
+echo br_netfilter | sudo tee /etc/modules-load.d/br_netfilter.conf
+sudo systemctl daemon-reload
+sudo systemctl restart systemd-modules-load.service
+lsmod | grep br_netfilter
+
+## Confirm bridge-nf-call-ip(6)tables proc values.
+## ref: https://github.com/corneliusweig/kubernetes-lxd
+grep '^1$' /proc/sys/net/bridge/bridge-nf-call-iptables
+grep '^1$' /proc/sys/net/bridge/bridge-nf-call-ip6tables
+
+## Create subuid and subgid files.
+## ref: https://github.com/corneliusweig/kubernetes-lxd
+cat <<EOF | sudo tee /etc/subuid
+root:1000000:1000000000
+$(whoami):1000000:1000000000
+EOF
+sudo cp -f /etc/subuid /etc/subgid
+
 ## Install Docker for IPv6.
 sudo groupadd docker
 if getent passwd vagrant; then
@@ -49,6 +72,8 @@ sudo systemctl daemon-reload
 sudo systemctl restart docker
 
 ## Disable systemd-resolved and install resolv.conf.
+##
+## TODO: Try this instead: https://unix.stackexchange.com/a/358485
 ##
 ## This is only necessary to avoid a collision on
 ## udp/53 between systemd-resolved and docker-bind64.
