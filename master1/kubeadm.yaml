@@ -5,6 +5,8 @@ kind: ClusterConfiguration
 apiServer:
   certSANs:
   - api.k6.example.com
+  - localhost
+  - localhost6
   extraArgs:
     authorization-mode: Node,RBAC
     bind-address: "::"  # REQUIRED for IPv6-only. Defaults to IPv4, otherwise.

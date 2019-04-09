@@ -5,6 +5,12 @@ Vagrant.configure("2") do |config|
 
   config.vm.box = "bento/ubuntu-18.04"
 
+  config.vm.network "forwarded_port",
+    guest: 6443,
+    guest_ip: "::1",
+    host: 6443,
+    host_ip: "::1"
+
   config.vm.network "public_network",
     bridge: [  # Vagrant falls back to first match.
       "en8: Belkin USB-C LAN"
@@ -13,10 +19,6 @@ Vagrant.configure("2") do |config|
   config.vm.provider "virtualbox" do |vb|
     vb.cpus = "2"
     vb.memory = "2048"
-
-    ## Enable promiscuous mode on NICs to permit macvlan bridges.
-    #vb.customize ["modifyvm", :id, "--nicpromisc1", "allow-all"]
-    #vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
   end
 
   config.vm.provision "shell",

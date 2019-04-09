@@ -25,38 +25,11 @@ sudo kubeadm init \
   --config=/vagrant/master1/kubeadm.yaml \
   --ignore-preflight-errors=${IGNORED_PREFLIGHT_ERRORS}
 
-## Copy KUBECONFIG to host mount.
-cp -f ${KUBECONFIG} /vagrant/
-
-
-#######
-
-#cat << EOT > /etc/cni/net.d/10-bridge-v6.conf
-#{
-#  "cniVersion": "0.3.0",
-#  "name": "mynet",
-#  "type": "bridge",
-#  "bridge": "cbr0",
-#  "isDefaultGateway": true,
-#  "ipMasq": true,
-#  "hairpinMode": true,
-#  "ipam": {
-#    "type": "host-local",
-#    "ranges": [
-#      [
-#        {
-#          "subnet": "fd2e:236d:b96f:b9d1::/64",
-#          "gateway": "fd2e:236d:b96f:b9d1::1"
-#        }
-#      ]
-#    ]
-#  }
-#}
-#EOT
-
-## Install calico for IPv6.
-
-
+## Configure a host mount copy of KUBECONFIG
+## to work with vagrant port forwarding.
+sudo cat ${KUBECONFIG} \
+  | sed 's@server: .*@server: "https://127.0.0.1:6443"@g' \
+  > /vagrant/admin.conf
 
 ## Report that it kind of worked.
 echo OK

@@ -62,11 +62,6 @@ if getent passwd ubuntu; then
   sudo usermod -aG docker ubuntu
 fi
 
-## Remove docker0 bridge becuase Kubernetes doesn't
-## require it and the IPv4 address on it will confuse
-## Kubernetes anyway.
-#sudo /vagrant/scripts/remove-docker0.sh
-
 ## Install kubelet, kubeadm, kubectl.
 sudo curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
@@ -80,8 +75,6 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 ## Remove IPv4 address on docker0
 sudo ip addr del 172.17.0.1/16 dev docker0
-
-## FYI: Run kubeadm init out of band for now.
 
 ## Report that it kind of worked.
 echo OK

@@ -3,6 +3,8 @@
 ## - https://github.com/corneliusweig/kubernetes-lxd
 ## - https://github.com/juju-solutions/bundle-canonical-kubernetes/wiki/Deploying-on-LXD
 ## - https://github.com/lxc/lxd/blob/master/doc/preseed.md
+## - https://discuss.linuxcontainers.org/t/forward-port-80-and-443-from-wan-to-container/2042
+## - https://github.com/lxc/lxd/blob/master/doc/containers.md#type-proxy
 
 cluster: null
 
@@ -79,3 +81,7 @@ profiles:
       path: /sys/module/apparmor/parameters/enabled
       source: /dev/null
       type: disk
+    kube-apiserver:
+      type: proxy  # For us, this means port forward.
+      listen: "tcp:[::1]:6443"
+      connect: "tcp:[::1]:6443"
