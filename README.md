@@ -95,7 +95,7 @@ kubectl get node -o wide
 
 ## Using Kubernetes from outside the VM
 
-NOTE: This is broken right now, due to: https://github.com/hashicorp/vagrant/issues/10678#issuecomment-481323254
+NOTE: This is broken right now, due to: https://github.com/hashicorp/vagrant/issues/10782
 
 Once you complete the Getting Started steps, you should be able to exit the Vagrant machine and run commands against the Kubernetes API from outsdie the VM.
 
