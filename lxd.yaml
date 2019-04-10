@@ -47,10 +47,16 @@ profiles:
       lxc.cap.drop=
       lxc.cgroup.devices.allow=a
       lxc.mount.auto=proc:rw sys:rw
-    user.user-data: |
-       #cloud-config
-       runcmd:
-       - [ /vagrant/master1/provision.sh ]
+
+    ## cloud-init is taking too long to start
+    ## our script. So, I'm commenting it out.
+    ##
+    ##   -josdotso
+    ##
+    #user.user-data: |
+    #   #cloud-config
+    #   runcmd:
+    #   - [ /vagrant/master1/provision.sh ]
   devices:
     eth0:
       name: eth0
@@ -82,6 +88,6 @@ profiles:
       source: /dev/null
       type: disk
     kube-apiserver:
-      type: proxy  # For us, this means port forward.
-      listen: "tcp:[::1]:6443"
+      type: proxy  # For us, this means port forward. IPv4 -> IPv6 because: https://github.com/hashicorp/vagrant/issues/10782
+      listen: "tcp:0.0.0.0:6443"
       connect: "tcp:[::1]:6443"
