@@ -31,5 +31,8 @@ sudo cat ${KUBECONFIG} \
   | sed 's@server: .*@server: "https://127.0.0.1:6443"@g' \
   > /vagrant/admin.conf
 
+## Remove master taints.
+kubectl taint nodes --all node-role.kubernetes.io/master- || true
+
 ## Report that it kind of worked.
 echo OK

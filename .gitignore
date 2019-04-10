@@ -1,3 +1,4 @@
 .vagrant/
-resolv.conf.custom
 admin.conf
+resolv.conf.custom
+tmp/
