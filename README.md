@@ -10,66 +10,64 @@ IPv6-only Kubernetes -> DNS64 -> NAT64 -> Ubuntu 18.04 LXD Containers -> LXD -> 
 
 ## Getting Started
 
-- Clone this repo.
-- `cd` into your clone.
-- Then do...
+Clone this repo.
+
+`cd` into your clone.
 
 ```bash
-## Spin up the Vagrant machine.
+cd k6/
+```
+
+Spin up the Vagrant machine.
+
+When prompted, select a public bridge with IPv6 enabled.
+
+**NOTE:** WIFI probably won't work here nor will VPN.
+
+Let the provisioning script run to completion before continuing. You should see "OK".
+
+```bash
 vagrant up
+```
 
-## When prompted, select a public bridge with IPv6 enabled.
-##
-## WIFI probably won't work here nor will VPN.
+SSH into the vagrant host.
 
-## Let the provisioning script run to completion. You should see "OK".
-
-## SSH into the vagrant host.
+```bash
 vagrant ssh
+```
 
-## Enter the LXD container.
+Enter the master1 LXD container.
+
+```bash
 lxc exec master1 bash
+```
 
-## Watch the provsioning of the LXD container.
-## This takes a bit to get rolling and ends in kubelet failing.
-## That's the desired outcome, so keep going if you see that.
+Provision the LXD container.
 
-journalctl -f
-
-## Wait a bit until you see cloud init completed entirely.
-## My cloud-init fails but the failure doesn't seem directly
-## related to this repo. TODO: Clarify and/or fix this.
-
-## Once you see the "OK" marker, CTRL+c to quit journalctl.
-
-## Now docker is installed and things should be ready for
-## you to initialize kubeadm.
+```bash
 cd /vagrant/master1
-./kubeadm-init.sh
 
-## Now kubeadm should be almost ready to run
-## Calico. However, for good measure, watch the pods
-## come up until all are Running except coredns which
-## will say Pending until Calico is fully online.
+./provision.sh
+```
+
+Docker should now be installed and everything should be ready for you to initialize kubeadm.
+
+```bash
+./kubeadm-init.sh
+```
+
+Deploy Calico and wait until all pods are Running, including CoreDNS. CoreDNS pods may need one or two restarts before everything stablizes. This is unfortunate but normal.
+
+```bash
+./calico-init.sh
+
 kubectl get pod --all-namespaces -o wide
 ## ^ Run this as many times as you need before continuing.
 ##   You can append "-w" to the end of the command above
 ##   to watch for changes. Press CTRL+c to cancel the watch.
-
-## Deploy Calico and wait until all pods are Running,
-## including CoreDNS. CoreDNS pods may need one or two
-## restarts before everything stablizes. This is unfortunate
-## but normal.
-./calico-init.sh
-kubectl get pod --all-namespaces -o wide
-## ^ Run this as many times as you need before continuing.
-
-## At this point, IPv6-only Kubernetes should be running.
-## You can proceed to installing things like Ingress and
-## configuring storage provisioners as needed.
-
-## TODO: Enable local storage provsioner and MetalLB.
 ```
+
+At this point, IPv6-only Kubernetes should be running. You can now proceed to installing things like Ingress and configuring storage provisioners as needed.
 
 ### Expected Outcome
 
@@ -95,7 +93,7 @@ kubectl get node -o wide
 
 ## Using Kubernetes from outside the VM
 
-NOTE: This is broken right now, due to: https://github.com/hashicorp/vagrant/issues/10782
+**NOTE:** This is broken right now, due to: https://github.com/hashicorp/vagrant/issues/10782
 
 Once you complete the Getting Started steps, you should be able to exit the Vagrant machine and run commands against the Kubernetes API from outsdie the VM.
 

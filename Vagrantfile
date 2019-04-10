@@ -7,9 +7,8 @@ Vagrant.configure("2") do |config|
 
   config.vm.network "forwarded_port",
     guest: 6443,
-    guest_ip: "::1",
     host: 6443,
-    host_ip: "::1"
+    host_ip: "127.0.0.1"
 
   config.vm.network "public_network",
     bridge: [  # Vagrant falls back to first match.
