@@ -2,6 +2,22 @@
 
 set -euo pipefail
 
+## Disable systemd-resolved and install resolv.conf.
+##
+## TODO: Try this instead: https://unix.stackexchange.com/a/358485
+##
+## This is only necessary to avoid a collision on
+## udp/53 between systemd-resolved and LXD's dnsmasq.
+sudo systemctl disable systemd-resolved.service
+sudo systemctl stop systemd-resolved.service
+sudo cp /etc/resolv.conf /etc/resolv.conf.$$
+if [ -e /vagrant/resolv.conf.vagrant-custom ]; then
+  resolvconf=/vagrant/resolv.conf.vagrant-custom
+else
+  resolvconf=/vagrant/resolv.conf.vagrant
+fi
+sudo cp -f "${resolvconf}" /etc/resolv.conf
+
 ## Upgrade apt cache.
 sudo apt update
 
@@ -71,32 +87,6 @@ sudo mkdir -p /etc/systemd/system/docker.service.d
 sudo systemctl daemon-reload
 sudo systemctl restart docker
 
-## Disable systemd-resolved and install resolv.conf.
-##
-## TODO: Try this instead: https://unix.stackexchange.com/a/358485
-##
-## This is only necessary to avoid a collision on
-## udp/53 between systemd-resolved and docker-bind64.
-sudo systemctl disable systemd-resolved.service
-sudo systemctl stop systemd-resolved.service
-sudo cp /etc/resolv.conf /etc/resolv.conf.$$
-if [ -e /vagrant/resolv.conf.custom ]; then
-  resolvconf=/vagrant/resolv.conf.custom
-else
-  resolvconf=/vagrant/resolv.conf
-fi
-sudo cp -f "${resolvconf}" /etc/resolv.conf
-
-## Install and start docker-bind64.
-sudo curl -fsSL https://raw.githubusercontent.com/josdotso/docker-bind64/master/bind64.service \
-  -o /etc/systemd/system/bind64.service
-sudo sed -i 's@53:@1053:@g' /etc/systemd/system/bind64.service  ## resolve port conflict with LXD dnsmasq
-sudo systemctl daemon-reload
-sudo systemctl enable bind64.service
-sudo systemctl start bind64.service
-sleep 20  # Give it a little time to pull image and start.
-sudo systemctl status bind64
-
 ## Install and start docker-jool.
 sudo curl -fsSL https://raw.githubusercontent.com/josdotso/docker-jool/master/jool.service \
   -o /etc/systemd/system/jool.service
@@ -112,8 +102,11 @@ cat /vagrant/lxd.yaml | sudo lxd init --preseed
 ## Add ubuntu-minimal LXD remote.
 lxc remote add --protocol simplestreams ubuntu-minimal https://mirrors.servercentral.com/ubuntu-cloud-images/minimal/releases/
 
-## Launch LXD container for Kubernetes Master #1: "master1"
-lxc launch --profile master1 ubuntu-minimal:18.04 master1
+## Launch LXD container for master1
+lxc launch --profile init ubuntu-minimal:18.04 master1
+
+## Launch LXD container for nodes
+lxc launch --profile join ubuntu-minimal:18.04 node1
 
 ## Report that it kind of worked.
 echo OK

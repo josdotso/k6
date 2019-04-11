@@ -14,15 +14,17 @@ config:
 networks:
 
 - name: lxdbr0v6
-  description: "IPv6 Bridge"
+  description: "IPv6 Bridge (requires wired network)"
   managed: false
   type: bridge
   config:
     ipv4.address: none
     ipv6.address: auto
+    ipv6.nat: true  # RA doesn't work with this as false.
     raw.dnsmasq: |
       no-resolv
-      server=::1#1053
+      server=2001:4860:4860::6464
+      server=2001:4860:4860::64
 
 storage_pools:
 
@@ -33,8 +35,8 @@ storage_pools:
 
 profiles:
 
-- name: master1
-  description: "Kubernetes Master #1"
+- name: init
+  description: "Kubernetes Master #1 for Kubeadm Init"
   config:
     boot.autostart: "true"
     environment.http_proxy: ""
@@ -47,16 +49,6 @@ profiles:
       lxc.cap.drop=
       lxc.cgroup.devices.allow=a
       lxc.mount.auto=proc:rw sys:rw
-
-    ## cloud-init is taking too long to start
-    ## our script. So, I'm commenting it out.
-    ##
-    ##   -josdotso
-    ##
-    #user.user-data: |
-    #   #cloud-config
-    #   runcmd:
-    #   - [ /vagrant/master1/provision.sh ]
   devices:
     eth0:
       name: eth0
@@ -91,3 +83,48 @@ profiles:
       type: proxy  # For us, this means port forward. IPv4 -> IPv6 because: https://github.com/hashicorp/vagrant/issues/10782
       listen: "tcp:0.0.0.0:6443"
       connect: "tcp:[::1]:6443"
+
+- name: join
+  description: "Kubernetes Nodes/Masters for Kubeadm Join"
+  config:
+    boot.autostart: "true"
+    environment.http_proxy: ""
+    linux.kernel_modules: br_netfilter,ip_tables,ip6_tables,ip_vs,ip_vs_rr,ip_vs_wrr,ip_vs_sh,netlink_diag,nf_nat,overlay,xt_conntrack
+    security.nesting: "true"
+    security.privileged: "true"
+    user.network_mode: ""
+    raw.lxc: |
+      lxc.apparmor.profile=unconfined
+      lxc.cap.drop=
+      lxc.cgroup.devices.allow=a
+      lxc.mount.auto=proc:rw sys:rw
+  devices:
+    eth0:
+      name: eth0
+      nictype: bridged
+      parent: lxdbr0v6
+      type: nic
+    root:
+      path: /
+      pool: default
+      type: disk
+    lib-modules:
+      path: /lib/modules
+      source: /lib/modules
+      type: disk
+    usr-src:
+      path: /usr/src
+      source: /usr/src
+      type: disk
+    vagrant:
+      path: /vagrant
+      source: /vagrant
+      type: disk
+    aadisable:  ## ref: https://github.com/juju-solutions/bundle-canonical-kubernetes/wiki/Deploying-on-LXD
+      path: /sys/module/nf_conntrack/parameters/hashsize
+      source: /dev/null
+      type: disk
+    aadisable1:  ## ref: https://github.com/juju-solutions/bundle-canonical-kubernetes/wiki/Deploying-on-LXD
+      path: /sys/module/apparmor/parameters/enabled
+      source: /dev/null
+      type: disk
