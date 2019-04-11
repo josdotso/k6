@@ -39,7 +39,7 @@ SSH into the vagrant host.
 vagrant ssh
 ```
 
-## Initialize kubadm on master1
+### Initialize kubadm on master1
 
 Enter the master1 LXD container.
 
@@ -83,7 +83,7 @@ kubectl get pod --all-namespaces -o wide
 
 At this point, IPv6-only Kubernetes should be running. You can now proceed to installing things like Ingress and configuring storage provisioners as needed.
 
-### Expected Outcome
+#### Expected Outcome
 
 ```bash
 kubectl get pod --all-namespaces -o wide
@@ -105,7 +105,7 @@ kubectl get node -o wide
 #master1   Ready    master   24m   v1.14.1   fd42:467b:ca7b:a12b:216:3eff:feb0:12af   <none>        Ubuntu 18.04.2 LTS   4.15.0-29-generic   docker://18.9.4
 ```
 
-## Join node1 to the cluster.
+### Join node1 to the cluster.
 
 SSH into the vagrant host.
 
