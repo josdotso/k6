@@ -9,7 +9,7 @@ IGNORED_PREFLIGHT_ERRORS=FileContent--proc-sys-net-bridge-bridge-nf-call-iptable
 
 ## Preheat Docker image cache.
 sudo kubeadm config images pull \
-  --config=/vagrant/master1/kubeadm.yaml
+  --config=/vagrant/kubernetes/kubeadm.yaml
 
 ## Preemptively symlink to KUBECONFIG.
 ## (Doing this preemptively because kubeadm might
@@ -22,7 +22,7 @@ fi
 
 ## Run kubeadm.
 sudo kubeadm init \
-  --config=/vagrant/master1/kubeadm.yaml \
+  --config=/vagrant/kubernetes/kubeadm.yaml \
   --ignore-preflight-errors=${IGNORED_PREFLIGHT_ERRORS}
 
 ## Configure a host mount copy of KUBECONFIG

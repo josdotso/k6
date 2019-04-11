@@ -1,9 +1,32 @@
 ---
 ## This file is based on:
 ##
-##   https://docs.projectcalico.org/v3.6/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
+##   * https://docs.projectcalico.org/v3.6/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
+##   * https://github.com/projectcalico/calico/issues/2229#issuecomment-435430481
 ##
 
+## Remove all of this hack after Calico v3.4.2 is realized here.
+## ref: https://github.com/projectcalico/node/issues/194#issuecomment-478942591
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: calico-router-config
+  namespace: kube-system
+data:
+  script.sh: |-
+    #!/bin/sh
+    if [ -z $NODENAME || -z $PODNAME ]; then
+      exit 1
+    else
+      FAKE_IPV4="10.0.$(echo ${NODENAME} | cut -d. -f1 | sed 's@master@0.@g' | sed 's@node@1.@g')"
+      if [ -z $FAKE_IPV4 ]; then
+        exit 1
+      else
+        kubectl annotate pod ${PODNAME} routerid=${FAKE_IPV4}
+      fi
+    fi
+
+---
 # Source: calico/templates/calico-config.yaml
 # This ConfigMap is used to configure a self-hosted Calico installation.
 kind: ConfigMap
@@ -365,6 +388,7 @@ rules:
   # The CNI plugin patches pods/status.
   - apiGroups: [""]
     resources:
+      - pods
       - pods/status
     verbs:
       - patch
@@ -500,6 +524,26 @@ spec:
       # deletion": https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods.
       terminationGracePeriodSeconds: 0
       initContainers:
+        # CALICO_ROUTER_ID must be set for each node
+        # This initcontainer generates a router ID from the host IP
+        # and sets an annotation on the pod
+        - name: create-routerid
+          image: lachlanevenson/k8s-kubectl
+          env:
+            - name: NODENAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: PODNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          command: ["/bin/sh", "-c"]
+          args: ["/generatedip/script.sh"]
+          volumeMounts:
+          - name: generatedip
+            mountPath: /generatedip
+
         # This container performs upgrade from host-local IPAM to calico-ipam.
         # It can be deleted if this is a fresh installation, or if you have already
         # upgraded to use calico-ipam.
@@ -603,8 +647,8 @@ spec:
             # The default IPv4 pool to create on startup if none exists. Pod IPs will be
             # chosen from this range. Changing this value after installation will have
             # no effect. This should fall within `--cluster-cidr`.
-            - name: CALICO_IPV4POOL_CIDR
-              value: "192.168.0.0/16"
+            #- name: CALICO_IPV4POOL_CIDR
+            #  value: "192.168.0.0/16"
             - name: CALICO_IPV6POOL_CIDR
               value: "fd2e:236d:b96f:b9d1::/110"
             # Disable file logging so `kubectl logs` works.
@@ -624,6 +668,15 @@ spec:
               value: "info"
             - name: FELIX_HEALTHENABLED
               value: "true"
+            - name: CALICO_ROUTER_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['routerid']
+
+            ## Use the hack above until Calico v3.6.2
+            ## ref: https://github.com/projectcalico/calico/issues/2229#issuecomment-435430481
+            #- name: CALICO_ROUTER_ID
+            #  value: "hash"
           securityContext:
             privileged: true
           resources:
@@ -685,6 +738,12 @@ spec:
         - name: host-local-net-dir
           hostPath:
             path: /var/lib/cni/networks
+            volumes:
+        - name: generatedip
+          configMap:
+            name: calico-router-config
+            defaultMode: 0744
+
 ---
 
 apiVersion: v1
