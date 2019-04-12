@@ -132,12 +132,16 @@ Join this node to the Kubernetes cluster.
 NOTE: You MUST add the pre-flight check ignore flags due to running Kubernetes in LXD.
 
 ```bash
+## This is only an example.
+## You must splice together the join command you copied earlier
+## with the ignore-preflight-errors flag.
+##
 # kubeadm join [fd42:dbd:c3ea:e9db:216:3eff:fef8:fce6]:6443 --token 66fz78.abcabcabcabcabca \
 #   --discovery-token-ca-cert-hash sha256:9a9c75625662cb2bd1f4e41c582eb635653384b321ff06fc3c99bd8a41281f69 \
 #   --ignore-preflight-errors=FileContent--proc-sys-net-bridge-bridge-nf-call-iptables,FileContent--proc-sys-net-bridge-bridge-nf-call-ip6tables
 ```
 
-What you should see:
+--ignore-preflight-errors=FileContent--proc-sys-net-bridge-bridge-nf-call-iptables,FileContent--proc-sys-net-bridge-bridge-nf-call-ip6tablesWhat you should see:
 
 ```bash
 # Run 'kubectl get nodes' on the control-plane to see this node join the cluster.

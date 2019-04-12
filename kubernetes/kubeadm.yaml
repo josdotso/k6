@@ -17,7 +17,7 @@ apiServer:
 ## repos and such. If you don't pin,
 ## kubeadm may fail to pull docker images
 ## immediately after a new release is cut.
-kubernetesVersion: v1.14.0
+kubernetesVersion: v1.14.1
 
 ## serviceSubnet and podSubnet should be adjacent.
 ## We use semi-random ULAs here.
@@ -34,24 +34,11 @@ networking:
 apiVersion: kubeproxy.config.k8s.io/v1alpha1
 kind: KubeProxyConfiguration
 mode: "iptables"
-
+healthzBindAddress: "[::]:10256"
+metricsBindAddress: "[::1]:10249"
 conntrack:
   maxPerCore: 0  # MUST leave the limit as-is, because LXD.
                  # ref: https://github.com/ubuntu/microk8s/issues/119
-
-## These IPv6 bind addresses do not work. The
-## healthzBindAddress listening on IPv6 is much
-## more important than metricsBindAddress, because
-## metricsBindAddress is usually localhost-bound
-## anyway, but healthzBindAddress is not.
-##
-## ref: https://github.com/kubernetes/kubernetes/issues/62479#issuecomment-480992586
-##
-#healthzBindAddress: "::0:10256"
-#metricsBindAddress: "::1:10249"
-
-healthzBindAddress: 0.0.0.0:10256
-metricsBindAddress: 127.0.0.1:10249
 
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
