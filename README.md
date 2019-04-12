@@ -1,5 +1,5 @@
 # k6
-IPv6-only Kubernetes -> NAT64 -> Ubuntu 18.04 LXD Containers -> LXD -> Ubuntu 18.04 Bento Box -> Vagrant
+IPv6-only Kubernetes -> kubeadm -> NAT64 -> Ubuntu 18.04 LXD Containers -> Ubuntu 18.04 -> Vagrant 
 
 Also starring: [Google Public DNS64](https://developers.google.com/speed/public-dns/docs/dns64)
 
