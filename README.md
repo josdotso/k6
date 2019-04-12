@@ -141,11 +141,7 @@ NOTE: You MUST add the pre-flight check ignore flags due to running Kubernetes i
 #   --ignore-preflight-errors=FileContent--proc-sys-net-bridge-bridge-nf-call-iptables,FileContent--proc-sys-net-bridge-bridge-nf-call-ip6tables
 ```
 
-```bash
-# Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
-```
-
-Check out the result over:
+Check out the result:
 
 ```bash
 export KUBECONFIG=/etc/kubernetes/kubelet.conf
