@@ -61,7 +61,7 @@ Docker should now be installed and everything should be ready for you to initial
 ./kubeadm-init.sh
 ```
 
-**IMPORANT: Copy the full `kubeadm join` command displayed at the end of the command above. You'll need this to join subsequent nodes to the Kubernetes cluster.
+**IMPORTANT:** Copy the full `kubeadm join` command displayed at the end of the command above. You'll need this to join subsequent nodes to the Kubernetes cluster.
 
 A redacted example of what you should see and copy to a secure note for later:
 
@@ -134,14 +134,12 @@ NOTE: You MUST add the pre-flight check ignore flags due to running Kubernetes i
 ```bash
 ## This is only an example.
 ## You must splice together the join command you copied earlier
-## with the ignore-preflight-errors flag.
+## with the ignore-preflight-errors flag below.
 ##
 # kubeadm join [fd42:dbd:c3ea:e9db:216:3eff:fef8:fce6]:6443 --token 66fz78.abcabcabcabcabca \
 #   --discovery-token-ca-cert-hash sha256:9a9c75625662cb2bd1f4e41c582eb635653384b321ff06fc3c99bd8a41281f69 \
 #   --ignore-preflight-errors=FileContent--proc-sys-net-bridge-bridge-nf-call-iptables,FileContent--proc-sys-net-bridge-bridge-nf-call-ip6tables
 ```
-
---ignore-preflight-errors=FileContent--proc-sys-net-bridge-bridge-nf-call-iptables,FileContent--proc-sys-net-bridge-bridge-nf-call-ip6tablesWhat you should see:
 
 ```bash
 # Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
