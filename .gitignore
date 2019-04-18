@@ -2,3 +2,5 @@
 admin.conf
 resolv.conf.custom
 tmp/
+join-master.sh
+join-node.sh

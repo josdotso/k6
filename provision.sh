@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+## Load settings.
+source /vagrant/envrc
+
 ## Disable systemd-resolved and install resolv.conf.
 ##
 ## TODO: Try this instead: https://unix.stackexchange.com/a/358485
@@ -35,45 +38,67 @@ sudo apt install -y \
   software-properties-common \
   vim
 
-## Disable swap (required for kubelet)
-sudo swapoff -a
+## If first boot...
+if [ ! -e /var/lib/provisioned ]; then
 
-## Ensure br_netfilter kernel module
-## is loaded on every reboot.
-echo br_netfilter | sudo tee /etc/modules-load.d/br_netfilter.conf
-sudo systemctl daemon-reload
-sudo systemctl restart systemd-modules-load.service
-lsmod | grep br_netfilter
+  ## Install kubeadm, kubectl.
+  sudo curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+  cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+## We say "kubernetes-xenial" here because
+## "kubernetes-bionic" is 404.
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+  sudo apt update
+  sudo apt install -y kubeadm kubectl
+  sudo apt-mark hold kubeadm kubectl
 
-## Confirm bridge-nf-call-ip(6)tables proc values.
-## ref: https://github.com/corneliusweig/kubernetes-lxd
-grep '^1$' /proc/sys/net/bridge/bridge-nf-call-iptables
-grep '^1$' /proc/sys/net/bridge/bridge-nf-call-ip6tables
+  ## Disable swap (required for kubelet)
+  sudo sed -i '/swap/d' /etc/fstab
+  sudo swapoff -a
 
-## Create subuid and subgid files.
-## ref: https://github.com/corneliusweig/kubernetes-lxd
-cat <<EOF | sudo tee /etc/subuid
+  ## Ensure br_netfilter kernel module
+  ## is loaded on every reboot.
+  echo br_netfilter | sudo tee /etc/modules-load.d/br_netfilter.conf
+  sudo systemctl daemon-reload
+  sudo systemctl restart systemd-modules-load.service
+  lsmod | grep br_netfilter
+
+  ## Confirm bridge-nf-call-ip(6)tables proc values.
+  ## ref: https://github.com/corneliusweig/kubernetes-lxd
+  grep '^1$' /proc/sys/net/bridge/bridge-nf-call-iptables
+  grep '^1$' /proc/sys/net/bridge/bridge-nf-call-ip6tables
+
+  ## Initialize LXD.
+  cat /vagrant/lxd.yaml | sudo lxd init --preseed
+
+  ## Add ubuntu-minimal LXD remote.
+  lxc remote add --protocol simplestreams \
+    ubuntu-minimal https://mirrors.servercentral.com/ubuntu-cloud-images/minimal/releases/
+
+  ## Create subuid and subgid files.
+  ## ref: https://github.com/corneliusweig/kubernetes-lxd
+  cat <<EOF | sudo tee /etc/subuid
 root:1000000:1000000000
 $(whoami):1000000:1000000000
 EOF
-sudo cp -f /etc/subuid /etc/subgid
+  sudo cp -f /etc/subuid /etc/subgid
 
-## Install Docker for IPv6.
-sudo groupadd docker
-if getent passwd vagrant; then
-  sudo usermod -aG docker vagrant
-fi
-if getent passwd ubuntu; then
-  sudo usermod -aG docker ubuntu
-fi
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo add-apt-repository \
-  "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-sudo apt update
-sudo apt install -y docker-ce
-cat <<EOF | sudo tee /etc/docker/daemon.json
+  ## Install Docker for IPv6.
+  if ! getent group docker; then
+    sudo groupadd docker
+  fi
+  if getent passwd vagrant; then
+    sudo usermod -aG docker vagrant
+  fi
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  sudo add-apt-repository \
+    "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  sudo apt update
+  sudo mkdir /etc/docker
+  sudo mkdir -p /etc/systemd/system/docker.service.d
+  cat <<EOF | sudo tee /etc/docker/daemon.json
 {
-  "exec-opts": ["native.cgroupdriver=systemd"],
+  "exec-opts": ["native.cgroupdriver=cgroupfs"],
   "log-driver": "json-file",
   "log-opts": {
     "max-size": "100m"
@@ -83,30 +108,57 @@ cat <<EOF | sudo tee /etc/docker/daemon.json
   "fixed-cidr-v6": "2001:db8:1::/64"
 }
 EOF
-sudo mkdir -p /etc/systemd/system/docker.service.d
-sudo systemctl daemon-reload
-sudo systemctl restart docker
+  sudo apt install -y docker-ce
 
-## Install and start docker-jool.
-sudo curl -fsSL https://raw.githubusercontent.com/josdotso/docker-jool/master/jool.service \
-  -o /etc/systemd/system/jool.service
-sudo systemctl daemon-reload
-sudo systemctl enable jool.service
-sudo systemctl start jool.service
-sleep 20  # Give it a little time to pull image and start.
-sudo systemctl status jool
+  ## Initialize NAT64.
+  sudo curl -fsSL https://raw.githubusercontent.com/josdotso/docker-jool/master/jool.service \
+    -o /etc/systemd/system/jool.service
+  sudo systemctl daemon-reload
+  sudo systemctl enable jool.service
+  sudo systemctl start jool.service
 
-## Initialize LXD with Preseed YAML heredoc.
-cat /vagrant/lxd.yaml | sudo lxd init --preseed
+  ## Give it some time.
+  sleep 45
 
-## Add ubuntu-minimal LXD remote.
-lxc remote add --protocol simplestreams ubuntu-minimal https://mirrors.servercentral.com/ubuntu-cloud-images/minimal/releases/
+  sudo touch /var/lib/provisioned
+fi
 
-## Launch LXD container for master1
-lxc launch --profile init ubuntu-minimal:18.04 master1
+## Launch LXD container for masters
+for n in $(seq ${NUM_MASTERS}); do
+  if ! lxc exec master${n} true; then
+    lxc launch --profile init ubuntu-minimal:18.04 master${n}
+    sleep 10  # Give it some time to boot.
+    lxc exec master${n} /vagrant/kubernetes/provision.sh
+  fi
+done
+
+## Give the user a copy of the kubeconfig
+export ADMIN_KUBECONFIG=/vagrant/admin.conf
+export KUBECONFIG=~/.kube/config
+if [ ! -e ${KUBECONFIG} ]; then
+  mkdir -p $(dirname ${KUBECONFIG})
+  touch ${KUBECONFIG}
+  chmod 0600 ${KUBECONFIG}
+  sudo cat ${ADMIN_KUBECONFIG} > ${KUBECONFIG}
+fi
 
 ## Launch LXD container for nodes
-lxc launch --profile join ubuntu-minimal:18.04 node1
+for n in $(seq ${NUM_NODES}); do
+  if ! lxc exec node${n} true; then
+    lxc launch --profile join ubuntu-minimal:18.04 node${n}
+    sleep 10  # Give it some time to boot.
+    lxc exec node${n} /vagrant/kubernetes/provision.sh
+    kubectl label node node${n} kubernetes.io/role=node
 
-## Report that it kind of worked.
+    ## Check status after node join.
+    kubectl get nodes -o wide
+    kubectl get pods  -o wide --all-namespaces
+  fi
+done
+
+## Check final status.
+kubectl get nodes -o wide
+kubectl get pods  -o wide --all-namespaces
+
+## Report general success.
 echo OK

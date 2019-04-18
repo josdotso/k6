@@ -20,6 +20,12 @@ Vagrant.configure("2") do |config|
     vb.memory = "2048"
   end
 
+  ## Do things upon every boot.
+  config.vm.provision "shell",
+    path: "every-boot.sh",
+    run: "always"
+
+  ## Provision the VM upon first boot.
   config.vm.provision "shell",
     path: "provision.sh",
     privileged: false
