@@ -75,6 +75,18 @@ EOF
   lxc remote add --protocol simplestreams \
     ubuntu-minimal https://mirrors.servercentral.com/ubuntu-cloud-images/minimal/releases/
 
+  ## Fetch and export image.
+  if [ -e /vagrant/tmp/ubuntu-18.04-minimal-cloudimg-amd64-lxd.tar.xz ]; then
+    ## Eagerly import the cached image. Tolerate failure.
+    lxc image import \
+      /vagrant/tmp/ubuntu-18.04-minimal-cloudimg-amd64-lxd.tar.xz \
+      /vagrant/tmp/ubuntu-18.04-minimal-cloudimg-amd64.squashfs \
+        --alias ubuntu-minimal:18.04 || true
+  else
+    mkdir -p /vagrant/tmp
+    lxc image export ubuntu-minimal:18.04 /vagrant/tmp
+  fi
+
   ## Create subuid and subgid files.
   ## ref: https://github.com/corneliusweig/kubernetes-lxd
   cat <<EOF | sudo tee /etc/subuid
