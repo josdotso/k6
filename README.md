@@ -54,12 +54,28 @@ At this point, IPv6-only Kubernetes should be running. You can now proceed to in
 
 ```bash
 kubectl get pod --all-namespaces -o wide
-
+# NAMESPACE     NAME                                      READY   STATUS    RESTARTS   AGE     IP                                       NODE      NOMINATED NODE   READINESS GATES
+# kube-system   calico-kube-controllers-6cb7966b7-qjm76   1/1     Running   0          6m35s   fd2e:236d:b96f:b9d1::1:2840              master1   <none>           <none>
+# kube-system   calico-node-878mf                         1/1     Running   0          3m43s   fd42:8c05:3cde:3420:216:3eff:fe4e:5781   node1     <none>           <none>
+# kube-system   calico-node-dhd49                         1/1     Running   0          43s     fd42:8c05:3cde:3420:216:3eff:fef4:bf4d   node2     <none>           <none>
+# kube-system   calico-node-h884f                         1/1     Running   0          6m35s   fd42:8c05:3cde:3420:216:3eff:fe88:a1a0   master1   <none>           <none>
+# kube-system   coredns-fb8b8dccf-lkgjx                   1/1     Running   1          6m35s   fd2e:236d:b96f:b9d1::1:2841              master1   <none>           <none>
+# kube-system   coredns-fb8b8dccf-ll4mv                   1/1     Running   1          6m35s   fd2e:236d:b96f:b9d1::1:2842              master1   <none>           <none>
+# kube-system   etcd-master1                              1/1     Running   0          5m48s   fd42:8c05:3cde:3420:216:3eff:fe88:a1a0   master1   <none>           <none>
+# kube-system   kube-apiserver-master1                    1/1     Running   0          5m45s   fd42:8c05:3cde:3420:216:3eff:fe88:a1a0   master1   <none>           <none>
+# kube-system   kube-controller-manager-master1           1/1     Running   0          5m50s   fd42:8c05:3cde:3420:216:3eff:fe88:a1a0   master1   <none>           <none>
+# kube-system   kube-proxy-8fwbl                          1/1     Running   0          6m35s   fd42:8c05:3cde:3420:216:3eff:fe88:a1a0   master1   <none>           <none>
+# kube-system   kube-proxy-pqwpk                          1/1     Running   0          43s     fd42:8c05:3cde:3420:216:3eff:fef4:bf4d   node2     <none>           <none>
+# kube-system   kube-proxy-qb842                          1/1     Running   0          3m43s   fd42:8c05:3cde:3420:216:3eff:fe4e:5781   node1     <none>           <none>
+# kube-system   kube-scheduler-master1                    1/1     Running   0          5m27s   fd42:8c05:3cde:3420:216:3eff:fe88:a1a0   master1   <none>           <none>
 ```
 
 ```bash
 kubectl get node -o wide
-
+# NAME      STATUS   ROLES    AGE     VERSION   INTERNAL-IP                              EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
+# master1   Ready    master   7m23s   v1.14.1   fd42:8c05:3cde:3420:216:3eff:fe88:a1a0   <none>        Ubuntu 18.04.2 LTS   4.15.0-29-generic   docker://18.9.5
+# node1     Ready    node     4m11s   v1.14.1   fd42:8c05:3cde:3420:216:3eff:fe4e:5781   <none>        Ubuntu 18.04.2 LTS   4.15.0-29-generic   docker://18.9.5
+# node2     Ready    node     72s     v1.14.1   fd42:8c05:3cde:3420:216:3eff:fef4:bf4d   <none>        Ubuntu 18.04.2 LTS   4.15.0-29-generic   docker://18.9.5
 ```
 
 ## Using Kubernetes from outside the VM

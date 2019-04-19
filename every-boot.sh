@@ -10,7 +10,7 @@ if [ -e /var/lib/provisioned ]; then
   export KUBECONFIG=/home/vagrant/.kube/config
 
   echo "==> Retry "kubectl get pods" until Kubernetes API comes online."
-  while ! kubectl get pods --all-namespaces; do
+  while ! kubectl get pods --all-namespaces -o wide; do
     sleep 10
   done
 
@@ -18,12 +18,12 @@ if [ -e /var/lib/provisioned ]; then
   kubectl -n kube-system delete pod -l k8s-app=calico-node
 
   echo "==> Get current pod status."
-  kubectl get pods --all-namespaces
+  kubectl get pods --all-namespaces -o wide
 
   echo "==> TIP: It takes about two minutes for all base pods to be Running."
   uptime
 
-fi 
+fi
 
 ## Report general success.
 echo OK

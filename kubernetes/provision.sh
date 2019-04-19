@@ -33,6 +33,7 @@ sudo apt install -y \
 ## If first boot...
 if [ ! -e /var/lib/provisioned ]; then
 
+
   ## Install Docker for IPv6.
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   sudo add-apt-repository \
@@ -66,6 +67,28 @@ EOF
     sudo usermod -aG docker ubuntu
   fi
 
+  ## Forcefully disable IPv4 on docker0
+  ## now and at every boot.
+cat <<EOF | sudo tee /etc/systemd/system/remove-docker0-ipv4.service
+[Unit]
+Description=Remove IPv4 address from docker0 interface.
+After=docker.service network.target
+Requires=docker.service network.target
+Before=kubelet.service
+Wants=kubelet.service
+
+[Service]
+ExecStart=/sbin/ip addr del 172.17.0.1/16 dev docker0
+
+[Install]
+WantedBy=multi-user.target
+EOF
+  sudo systemctl daemon-reload
+  sudo systemctl enable remove-docker0-ipv4.service
+  sudo systemctl start remove-docker0-ipv4.service
+  sleep 1
+  ip -4 addr show dev docker0
+
   ## Install kubelet, kubeadm, kubectl.
   sudo curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
   cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
@@ -77,9 +100,6 @@ EOF
   sudo apt install -y kubelet kubeadm kubectl
   sudo apt-mark hold kubelet kubeadm kubectl
   sudo systemctl enable kubelet
-
-  ## Remove IPv4 address on docker0
-  sudo ip addr del 172.17.0.1/16 dev docker0
 
   ## Configure preflight errors to ignore.
   ##
