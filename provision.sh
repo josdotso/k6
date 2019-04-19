@@ -156,18 +156,20 @@ if [ ! -e ${KUBECONFIG} ]; then
 fi
 
 ## Launch LXD container for nodes
-for n in $(seq ${NUM_NODES}); do
-  if ! lxc exec node${n} true; then
-    lxc launch --profile join ubuntu-minimal:18.04 node${n}
-    sleep 10  # Give it some time to boot.
-    lxc exec node${n} /vagrant/kubernetes/provision.sh
-    kubectl label node node${n} kubernetes.io/role=node
+if (( ${NUM_NODES} > 0 )); then
+  for n in $(seq ${NUM_NODES}); do
+    if ! lxc exec node${n} true; then
+      lxc launch --profile join ubuntu-minimal:18.04 node${n}
+      sleep 10  # Give it some time to boot.
+      lxc exec node${n} /vagrant/kubernetes/provision.sh
+      kubectl label node node${n} kubernetes.io/role=node
 
-    ## Check status after node join.
-    kubectl get nodes -o wide
-    kubectl get pods  -o wide --all-namespaces
-  fi
-done
+      ## Check status after node join.
+      kubectl get nodes -o wide
+      kubectl get pods  -o wide --all-namespaces
+    fi
+  done
+fi
 
 ## Check final status.
 kubectl get nodes -o wide
