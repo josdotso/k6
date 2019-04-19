@@ -13,6 +13,7 @@ source /vagrant/envrc
 ## udp/53 between systemd-resolved and LXD's dnsmasq.
 sudo systemctl disable systemd-resolved.service
 sudo systemctl stop systemd-resolved.service
+sudo systemctl mask systemd-resolved.service
 sudo cp /etc/resolv.conf /etc/resolv.conf.$$
 if [ -e /vagrant/resolv.conf.vagrant-custom ]; then
   resolvconf=/vagrant/resolv.conf.vagrant-custom
