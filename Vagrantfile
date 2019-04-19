@@ -7,12 +7,12 @@ Vagrant.configure("2") do |config|
 
   config.vm.network "forwarded_port",
     guest: 6443,
-    host: 6443,
-    host_ip: "127.0.0.1"
+    host: 6443
 
   config.vm.network "public_network",
     bridge: [  # Vagrant falls back to first match.
-      "en8: Belkin USB-C LAN"
+      "en8: Belkin USB-C LAN",
+      "en9: USB 10/100/1000 LAN"
     ]
 
   config.vm.provider "virtualbox" do |vb|
