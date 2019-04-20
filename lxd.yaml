@@ -40,7 +40,7 @@ profiles:
   config:
     boot.autostart: "true"
     environment.http_proxy: ""
-    linux.kernel_modules: br_netfilter,ip_tables,ip6_tables,ip_vs,ip_vs_rr,ip_vs_wrr,ip_vs_sh,netlink_diag,nf_nat,overlay,xt_conntrack
+    linux.kernel_modules: br_netfilter,ip_tables,ip6_tables,ip_vs,ip_vs_rr,ip_vs_wrr,ip_vs_sh,netlink_diag,nf_nat,overlay,xt_conntrack,rbd
     security.nesting: "true"
     security.privileged: "true"
     user.network_mode: ""
@@ -89,7 +89,7 @@ profiles:
   config:
     boot.autostart: "true"
     environment.http_proxy: ""
-    linux.kernel_modules: br_netfilter,ip_tables,ip6_tables,ip_vs,ip_vs_rr,ip_vs_wrr,ip_vs_sh,netlink_diag,nf_nat,overlay,xt_conntrack
+    linux.kernel_modules: br_netfilter,ip_tables,ip6_tables,ip_vs,ip_vs_rr,ip_vs_wrr,ip_vs_sh,netlink_diag,nf_nat,overlay,xt_conntrack,rbd
     security.nesting: "true"
     security.privileged: "true"
     user.network_mode: ""
