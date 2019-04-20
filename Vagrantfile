@@ -17,7 +17,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider "virtualbox" do |vb|
     vb.cpus = "2"
-    vb.memory = "2048"
+    vb.memory = "6144"
   end
 
   ## Do things upon every boot.
