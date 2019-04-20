@@ -142,6 +142,11 @@ for n in $(seq ${NUM_MASTERS}); do
     lxc launch --profile init ubuntu-minimal:18.04 master${n}
     sleep 10  # Give it some time to boot.
     lxc exec master${n} /vagrant/kubernetes/provision.sh
+
+    # Bootstrap Kubernetes tools (helm, rook, etc) on the first master
+    if (( $n == 1 )); then
+	lxc exec master${n} /vagrant/kubernetes/bootstrap.sh
+    fi
   fi
 done
 
