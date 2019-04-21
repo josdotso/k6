@@ -3,13 +3,12 @@ set -ueo pipefail
 
 function main() {
     echo "kubernetes bootstrap.sh called"
-    echo "exiting early"
-    exit 0
 
-    confgure_kube
+    configure_kube
     configure_helm
-    configure_metallb
+    #configure_metallb
     configure_ingress
+    configure_rook
     exit 0
 }
 
@@ -47,11 +46,12 @@ function configure_metallb() {
     return 0
 
     # Get the IP of the default route interface
-    EXTERNAL_IP=$(ip -6 route get 2001:4860:4860::6464 | grep -oP 'src \K\S+')
+
     # Install MetalLB using Helm
     #   Send chart overrides through sdtdin
     #   NOTE: Non-floating IP is something like `192.168.1.7/32` in OpenStack.
     if ! helm ls | grep metallb; then
+	EXTERNAL_IP=$(ip -6 route get 2001:4860:4860::6464 | grep -oP 'src \K\S+')
 	helm delete --purge metallb || true
         helm install --name metallb stable/metallb -f - << EOF
 prometheus:
@@ -61,12 +61,13 @@ configInline:
   - name: default
     protocol: layer2
     addresses:
+    - fd42:25fa:cd98:32c3:ffff:ffff::/96
+EOF
+    fi
 #   - $EXTERNAL_IP/128
 #   - fd42:73fd:d832:c84f::198:0/110
 #   - $EXTERNAL_IP/64
-    - fd42:73fd:d832:c84f::/64
-EOF
-    fi
+#   - fd42:73fd:d832:c84f::/64
 }
 
 function configure_ingress() {
@@ -84,27 +85,22 @@ EOF
 }
 
 function configure_rook() {
-    # NONE OF THIS WORKS
-
-    # Install Rook Ceph
-    #   ref: https://github.com/rook/rook/blob/master/Documentation/ceph-quickstart.md
-    #   ref: https://github.com/rook/rook.github.io/blob/master/docs/rook/v0.7/helm-operator.md
-    kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/common.yaml
-    kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/operator.yaml
-    kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/cluster.yaml
 
 
-    kubectl delete -f https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/common.yaml
-    kubectl delete -f https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/operator.yaml
-    kubectl delete -f https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/cluster.yaml
-
-    helm repo add rook-master https://charts.rook.io/master
+    # https://github.com/rook/rook/blob/master/Documentation/helm-operator.md
+    # https://github.com/rook/rook/tree/master/cluster/charts/rook-ceph
+    # kubectl edit cephclusters.ceph.rook.io -n rook-ceph
+    # kubectl edit daemonset -n rook-ceph rook-discover
+    helm repo add rook-stable https://charts.rook.io/stable
     helm search rook
-    helm install --name rook rook-master/rook \
-	 --namespace kube-system \
-	 --version v0.7.0-10.g3bcee98 \
-	 --set rbacEnable=false
-
+    helm install --name rook-ceph --namespace rook-ceph rook-stable/rook-ceph
+    kubectl delete -f - << EOF
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: rook-ceph
+EOF
 
     kubectl create -f - << EOF
 apiVersion: ceph.rook.io/v1
@@ -116,55 +112,48 @@ spec:
   cephVersion:
     # For the latest ceph images, see https://hub.docker.com/r/ceph/ceph/tags
     image: ceph/ceph:v13.2.5-20190319
-  dataDirHostPath: /var/lib/rook3
+  dataDirHostPath: /var/lib/rook
   mon:
-    count: 3
+    count: 1
     allowMultiplePerNode: false
   dashboard:
     enabled: true
   storage:
     useAllNodes: true
-    useAllDevices: false
+    useAllDevices: true
+    deviceFilter: loop*
+    directories:
+    - path: "/rook/storage-dir"
     storeConfig:
       storeType: bluestore
-      databaseSizeMB: 1024
-      journalSizeMB: 1024
-EOF
-    # kubectl delete cephclusters.ceph.rook.io rook-ceph -n rook-ceph
-    # helm delete --purge rook
-
-}
-
-
-function guide() {
-    # CONFIGURE CEPH USING TUTORIAL, has an RBAC error haven't figured out yet
-    # https://akomljen.com/rook-cloud-native-on-premises-persistent-storage-for-kubernetes-on-kubernetes/
-
-    helm repo add rook-master https://charts.rook.io/master
-    helm search rook
-    helm install --name rook rook-master/rook \
-	 --namespace kube-system \
-	 --version v0.7.0-136.gd13bc83 \
-	 --set rbacEnable=true
-    kubectl create namespace rook
-
-cat << EOF | kubectl create -n rook -f -
-apiVersion: rook.io/v1alpha1
-kind: Cluster
-metadata:
-  name: rook
-spec:
-  dataDirHostPath: /var/lib/rook
-  storage:
-    useAllNodes: true
-    useAllDevices: false
-    storeConfig:
-      storeType: bluestore
-      databaseSizeMB: 1024
-      journalSizeMB: 1024
+      databaseSizeMB: 256
+      journalSizeMB: 256
 EOF
 
+# 2019-04-20 07:03:35.799358 E | op-cluster: unknown ceph major version. failed to get version job log to detect version. failed to read from stream. pods "rook-ceph-detect-version-pr2cr" is forbidden: User "system:serviceaccount:rook-ceph:rook-ceph-system" cannot get resource "pods/log" in API group "" in the namespace "rook-ceph"
+# add kubectl edit role rook-ceph-system -n rook-ceph   # pods/log
 }
+
+function configure_loopback_block_devices() {
+    # https://git.osso.nl/kubernetes/rook-ceph/tree/41e5d1ff49108b09f0fc0db9c1ba6cb861af12dd
+
+
+    for i in {0..1}; do
+	if [ ! -e /dev/loop$i ]; then
+	    mknod /dev/loop$i b 7 $i
+	    #chown --reference=/dev/loop0 /dev/loop$i
+	    #chmod --reference=/dev/loop0 /dev/loop$i
+	    chown root:disk /dev/loop$i
+	    chmod u+rw /dev/loop$i
+	    chmod g+rw /dev/loop$i
+	fi
+	if [ ! -e /root/diskimage$i ]; then
+	    dd if=/dev/zero of=/root/diskimage$i bs=1M count=2048
+	    losetup -fP /root/diskimage$i
+	fi
+    done
+}
+
 
 function configure_kubeconfig() {
     remote_access_uri=${1:-}
