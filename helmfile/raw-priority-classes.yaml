@@ -1,0 +1,88 @@
+repositories:
+- name: "incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+
+releases:
+
+################################################################################
+## Kubernetes Raw Charts #######################################################
+################################################################################
+
+#
+# References:
+#   - https://github.com/helm/charts/tree/master/incubator/raw
+#
+
+- name: "raw-priority-classes"
+  namespace: "common-infra"
+  labels:
+    chart: "raw"
+    repo: "incubator"
+    component: "priority-classes"
+    namespace: "common-infra"
+    vendor: "kubernetes"
+    default: "true"
+  chart: "incubator/raw"
+  version: "0.1.0"
+  wait: true
+  installed: true
+  values:
+  - resources:
+    - apiVersion: scheduling.k8s.io/v1beta1
+      description: This priority class should only be used for critical priority common
+        pods.
+      globalDefault: false
+      kind: PriorityClass
+      metadata:
+        name: common-critical
+      value: 100000000
+    - apiVersion: scheduling.k8s.io/v1beta1
+      description: This priority class should only be used for high priority common pods.
+      globalDefault: false
+      kind: PriorityClass
+      metadata:
+        name: common-high
+      value: 90000000
+    - apiVersion: scheduling.k8s.io/v1beta1
+      description: This priority class should only be used for medium priority common
+        pods.
+      globalDefault: false
+      kind: PriorityClass
+      metadata:
+        name: common-medium
+      value: 80000000
+    - apiVersion: scheduling.k8s.io/v1beta1
+      description: This priority class should only be used for low priority common pods.
+      globalDefault: false
+      kind: PriorityClass
+      metadata:
+        name: common-low
+      value: 70000000
+    - apiVersion: scheduling.k8s.io/v1beta1
+      description: This priority class should only be used for critical priority app pods.
+      globalDefault: false
+      kind: PriorityClass
+      metadata:
+        name: app-critical
+      value: 100000
+    - apiVersion: scheduling.k8s.io/v1beta1
+      description: This priority class should only be used for high priority app pods.
+      globalDefault: false
+      kind: PriorityClass
+      metadata:
+        name: app-high
+      value: 90000
+    - apiVersion: scheduling.k8s.io/v1beta1
+      description: This priority class should only be used for medium priority app pods.
+      globalDefault: true
+      kind: PriorityClass
+      metadata:
+        name: app-medium
+      value: 80000
+    - apiVersion: scheduling.k8s.io/v1beta1
+      description: This priority class should only be used for low priority app pods.
+      globalDefault: false
+      kind: PriorityClass
+      metadata:
+        name: app-low
+      value: 70000

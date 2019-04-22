@@ -1,0 +1,58 @@
+repositories:
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+
+################################################################################
+## NGINX Ingress Controller ####################################################
+################################################################################
+
+#
+# References:
+#   - https://github.com/helm/charts/tree/master/stable/nginx-ingress
+#
+
+- name: "nginx-ingress"
+  namespace: "common-infra"
+  labels:
+    chart: "nginx-ingress"
+    repo: "stable"
+    component: "ingress"
+    namespace: "common-infra"
+    vendor: "kubernetes"
+    default: "true"
+  chart: "stable/nginx-ingress"
+  version: "0.24.1"
+  wait: true
+  installed: {{ env "NGINX_INGRESS_INSTALLED" | default "true" }}
+  values:
+    - controller:
+        config:
+          hsts: "true"
+          hsts-include-subdomains: "true"
+          http-snippet: |-
+            add_header X-Content-Type-Options nosniff;
+            add_header X-Frame-Options sameorigin;
+            add_header X-XSS-Protection 1;
+          server-tokens: "False"
+        extraArgs:
+          v: 2
+        ingressClass: nginx
+        publishService:
+          enabled: false
+        replicaCount: 1
+      defaultBackend:
+        replicaCount: 1
+      rbac:
+        create: true
+      serviceAccount:
+        create: true
+        name: nginx-ingress
+      resources:
+        limits:
+          cpu: 100m
+          memory: 64Mi
+        requests:
+          cpu: 100m
+          memory: 64Mi

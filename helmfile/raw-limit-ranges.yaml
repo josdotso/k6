@@ -1,0 +1,43 @@
+repositories:
+- name: "incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+
+releases:
+
+################################################################################
+## Kubernetes Raw Charts #######################################################
+################################################################################
+
+#
+# References:
+#   - https://github.com/helm/charts/tree/master/incubator/raw
+#
+
+- name: "raw-limit-ranges"
+  namespace: "common-infra"
+  labels:
+    chart: "raw"
+    repo: "incubator"
+    component: "limit-ranges"
+    namespace: "common-infra"
+    vendor: "kubernetes"
+    default: "true"
+  chart: "incubator/raw"
+  version: "0.1.0"
+  wait: true
+  installed: true
+  values:
+  - resources:
+    - apiVersion: v1
+      kind: LimitRange
+      metadata:
+        name: limits
+      spec:
+        limits:
+        - default:
+            cpu: 100m
+            memory: 256Mi
+          defaultRequest:
+            cpu: 100m
+            memory: 256Mi
+          type: Container

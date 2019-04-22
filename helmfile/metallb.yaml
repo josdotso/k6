@@ -1,0 +1,40 @@
+repositories:
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+
+################################################################################
+## Metal LoadBalancer ##########################################################
+################################################################################
+
+#
+# References:
+#   - https://github.com/helm/charts/tree/master/stable/metallb
+#
+
+- name: "metallb"
+  namespace: "common-infra"
+  labels:
+    chart: "metallb"
+    repo: "stable"
+    component: "ingress"
+    namespace: "common-infra"
+    vendor: "kubernetes"
+    default: "true"
+  chart: "stable/metallb"
+  version: "0.9.5"
+  wait: true
+  installed: true
+  values:
+  - prometheus:
+      scrapeAnnotations: false
+    configInline:
+      address-pools:
+      - name: default
+        protocol: layer2
+        addresses:
+        # TODO: This is an invalid address.
+        #  Metallb does not yet work with IPV6.
+        #  Once it does, this might work if you set a valid range
+        - fd42:9e9a:9155:ee10:ffff:ffff::/96
