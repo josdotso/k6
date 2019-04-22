@@ -1,0 +1,76 @@
+repositories:
+- name: "incubator"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+
+################################################################################
+## Metal LoadBalancer ##########################################################
+################################################################################
+
+#
+# References:
+#   - https://github.com/helm/charts/tree/master/incubator/elasticsearch
+#
+
+- name: "elasticsearch"
+  namespace: "common-infra"
+  labels:
+    chart: "elasticsearch"
+    repo: "incubator"
+    component: "ingress"
+    namespace: "common-infra"
+    vendor: "kubernetes"
+    default: "true"
+  chart: "incubator/elasticsearch"
+  version: "1.6.0"
+  wait: true
+  installed: true
+  values:
+  - appVersion: 6.3.1
+    client:
+      antiAffinity: hard
+      heapSize: 2048m
+      priorityClassName: common-critical
+      replicas: 1
+      resources:
+        limits:
+          cpu: 1
+          memory: 2560Mi
+        requests:
+          cpu: 100m
+          memory: 2560Mi
+    cluster:
+      env:
+        NETWORK_HOST: _eth0:ipv4_
+    data:
+      # TODO: switch back to "hard" after multinode
+      antiAffinity: soft
+      heapSize: 3072m
+      persistence:
+        size: 16Gi
+      priorityClassName: common-critical
+      replicas: 1
+      resources:
+        limits:
+          cpu: 1
+          memory: 3840Mi
+        requests:
+          cpu: 100m
+          memory: 3840Mi
+    image:
+      tag: 6.3.1
+    master:
+      antiAffinity: soft
+      heapSize: 1024m
+      persistence:
+        size: 1Gi
+      priorityClassName: common-critical
+      replicas: 2
+      resources:
+        limits:
+          cpu: 1
+          memory: 1536Mi
+        requests:
+          cpu: 100m
+          memory: 1536Mi
