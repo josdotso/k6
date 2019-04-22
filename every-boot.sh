@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ## Load settings.
-source /vagrant/envrc
+source /vagrant/.envrc
 
 ## If NOT first boot...
 if [ -e /var/lib/provisioned ]; then

@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ## Load settings.
-source /vagrant/envrc
+source /vagrant/.envrc
 
 ## Disable systemd-resolved and install resolv.conf.
 ##
@@ -140,9 +140,6 @@ fi
 for n in $(seq ${NUM_MASTERS}); do
   if ! lxc exec master${n} true; then
     lxc launch --profile init ubuntu-minimal:18.04 master${n}
-    sudo mkdir -p /opt/ceph/master${n}/disk1
-    lxc config device add master${n} ceph-disk1 \
-      disk source=/opt/ceph/master${n}/disk1 path=/opt/ceph/disk1
     sleep 10  # Give it some time to boot.
     lxc exec master${n} /vagrant/kubernetes/provision.sh
   fi
@@ -161,9 +158,6 @@ if (( ${NUM_NODES} > 0 )); then
   for n in $(seq ${NUM_NODES}); do
     if ! lxc exec node${n} true; then
       lxc launch --profile join ubuntu-minimal:18.04 node${n}
-      sudo mkdir -p /opt/ceph/node${n}/disk1
-      lxc config device add node${n} ceph-disk1 \
-        disk source=/opt/ceph/node${n}/disk1 path=/opt/ceph/disk1
       sleep 10  # Give it some time to boot.
       lxc exec node${n} /vagrant/kubernetes/provision.sh
       kubectl label node node${n} kubernetes.io/role=node
