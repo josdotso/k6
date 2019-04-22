@@ -14,12 +14,12 @@ releases:
 #
 
 - name: "raw-cluster-role-bindings"
-  namespace: "common-infra"
+  namespace: "common"
   labels:
     chart: "raw"
     repo: "incubator"
     component: "cluster-role-bindings"
-    namespace: "common-infra"
+    namespace: "common"
     vendor: "kubernetes"
     default: "true"
   chart: "incubator/raw"
