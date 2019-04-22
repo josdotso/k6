@@ -49,9 +49,6 @@ profiles:
       lxc.cap.drop=
       lxc.cgroup.devices.allow=a
       lxc.mount.auto=proc:rw sys:rw
-      # Allow Creation of Loopback Devices
-      lxc.cgroup.devices.allow = c 10:237 rw
-      lxc.cgroup.devices.allow = b 7:* rw
 
   devices:
     eth0:
@@ -102,9 +99,6 @@ profiles:
       lxc.cap.drop=
       lxc.cgroup.devices.allow=a
       lxc.mount.auto=proc:rw sys:rw
-      # Allow Creation of Loopback Devices
-      lxc.cgroup.devices.allow = c 10:237 rw
-      lxc.cgroup.devices.allow = b 7:* rw
   devices:
     eth0:
       name: eth0
