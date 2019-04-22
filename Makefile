@@ -18,5 +18,10 @@ kubeconfig:
 
 .PHONY: helmfile
 helmfile:
+	killall tiller || true
 	helm tiller start-ci
 	source envrc && helmfile apply
+
+	## Fix for issue where helm chart doesn't include correct perms.
+	kubectl patch -n common role rook-ceph-system --patch "$$(cat patches/role.rook-ceph-system.yaml)"
+	kubectl delete pod -n common -l app=rook-ceph-operator
