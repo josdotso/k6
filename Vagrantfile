@@ -1,6 +1,9 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+$memory = 6144  # In megabytes
+$cpus   = 2
+
 Vagrant.configure("2") do |config|
 
   config.vm.box = "bento/ubuntu-18.04"
@@ -16,9 +19,25 @@ Vagrant.configure("2") do |config|
     ]
 
   config.vm.provider "virtualbox" do |vb|
-    vb.cpus = "2"
-    vb.memory = "6144"
+    vb.memory = $memory
+    vb.cpus = $cpus
   end
+
+  config.vm.provider "hyperv" do |hv|
+    hv.memory = $memory
+    hv.cpus = $cpus
+  end
+
+  ## Fix Line Endings
+  ##   For Windows Hyperv, fix carriage-return line endings.
+  ##   For Unix-based systems dos2unix does not modify files.
+  config.vm.provision "shell",
+                        run: "always",
+                        inline: <<-SHELL
+    sudo apt-get install -y dos2unix
+    pushd /vagrant
+    dos2unix $(find * .envrc -type f | grep -v tmp)
+  SHELL
 
   ## Do things upon every boot.
   config.vm.provision "shell",
