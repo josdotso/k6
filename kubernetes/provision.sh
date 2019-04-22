@@ -138,12 +138,10 @@ EOF
       ## Give the user a copy of root's kubeconfig.
       export ADMIN_KUBECONFIG=/etc/kubernetes/admin.conf
       export KUBECONFIG=~/.kube/config
-      if [ ! -e ${KUBECONFIG} ]; then
-        mkdir -p $(dirname ${KUBECONFIG})
-        touch ${KUBECONFIG}
-        chmod 0600 ${KUBECONFIG}
-        sudo cat ${ADMIN_KUBECONFIG} > ${KUBECONFIG}
-      fi
+      mkdir -p $(dirname ${KUBECONFIG})
+      touch ${KUBECONFIG}
+      chmod 0600 ${KUBECONFIG}
+      sudo cat ${ADMIN_KUBECONFIG} > ${KUBECONFIG}
 
       ## Configure a host mount copy of KUBECONFIG
       ## for use inside the vagrant machine.

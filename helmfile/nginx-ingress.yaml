@@ -14,12 +14,12 @@ releases:
 #
 
 - name: "nginx-ingress"
-  namespace: "common-infra"
+  namespace: "common"
   labels:
     chart: "nginx-ingress"
     repo: "stable"
     component: "ingress"
-    namespace: "common-infra"
+    namespace: "common"
     vendor: "kubernetes"
     default: "true"
   chart: "stable/nginx-ingress"

@@ -14,12 +14,12 @@ releases:
 #
 
 - name: "raw-limit-ranges"
-  namespace: "common-infra"
+  namespace: "common"
   labels:
     chart: "raw"
     repo: "incubator"
     component: "limit-ranges"
-    namespace: "common-infra"
+    namespace: "common"
     vendor: "kubernetes"
     default: "true"
   chart: "incubator/raw"
