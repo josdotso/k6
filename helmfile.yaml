@@ -1,5 +1,6 @@
 helmDefaults:
   tillerless: true
+
 helmfiles:
   - helmfile/raw-cluster-role-bindings.yaml
   - helmfile/raw-limit-ranges.yaml
@@ -8,5 +9,7 @@ helmfiles:
   #   however we load it so that LoadBalancer services may get IPs
   - helmfile/metallb.yaml
   - helmfile/nginx-ingress.yaml
+  - helmfile/rook-ceph.yaml
+  - helmfile/raw-rook-ceph.yaml
   # Unable to test without a lot of memory and multinode storage
-  - helmfile/elasticsearch.yaml
+  #- helmfile/elasticsearch.yaml

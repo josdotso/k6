@@ -1,0 +1,36 @@
+repositories:
+- name: rook-stable
+  url: https://charts.rook.io/stable
+
+releases:
+
+################################################################################
+## Metal LoadBalancer ##########################################################
+################################################################################
+
+#
+# References:
+#   - https://github.com/helm/charts/tree/master/stable/metallb
+#
+
+- name: rook-ceph
+  namespace: common
+  labels:
+    chart: rook-ceph
+    repo: rook-stable
+    component: storage
+    namespace: common
+    vendor: kubernetes
+    default: true
+  chart: rook-stable/rook-ceph
+  version: v0.9.3
+  wait: true
+  installed: true
+  values:
+  - resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
