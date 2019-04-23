@@ -6,7 +6,7 @@ helmfiles:
   - helmfile/raw-limit-ranges.yaml
   - helmfile/raw-priority-classes.yaml
   # metallb does not work with IPV6 yet.
-  #   however we load it so that LoadBalancer services may get IPs
+  #   However, we load it so that LoadBalancer services may get IPs
   - helmfile/metallb.yaml
   - helmfile/nginx-ingress.yaml
   # Unable to test without a lot of memory and multinode storage
