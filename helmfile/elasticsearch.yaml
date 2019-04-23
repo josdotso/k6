@@ -1,6 +1,6 @@
 repositories:
 - name: "incubator"
-  url: "https://kubernetes-charts.storage.googleapis.com"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com/"
 
 releases:
 
@@ -23,12 +23,11 @@ releases:
     vendor: "kubernetes"
     default: "true"
   chart: "incubator/elasticsearch"
-  version: "1.6.0"
+  version: "1.10.2"
   wait: true
   installed: true
   values:
-  - appVersion: 6.3.1
-    client:
+  - client:
       antiAffinity: hard
       heapSize: 2048m
       priorityClassName: common-critical
@@ -42,10 +41,11 @@ releases:
           memory: 2560Mi
     cluster:
       env:
-        NETWORK_HOST: _eth0:ipv4_
+        MINIMUM_MASTER_NODES: 1
+      additionalJavaOpts: "-Djava.net.preferIPv4Stack=false -Djava.net.preferIPv6Addresses=true"
     data:
       # TODO: switch back to "hard" after multinode
-      antiAffinity: soft
+      antiAffinity: hard
       heapSize: 3072m
       persistence:
         size: 16Gi
@@ -58,15 +58,13 @@ releases:
         requests:
           cpu: 100m
           memory: 3840Mi
-    image:
-      tag: 6.3.1
     master:
-      antiAffinity: soft
+      antiAffinity: hard
       heapSize: 1024m
       persistence:
         size: 1Gi
       priorityClassName: common-critical
-      replicas: 2
+      replicas: 1
       resources:
         limits:
           cpu: 1
