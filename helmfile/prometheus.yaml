@@ -24,12 +24,17 @@ releases:
     namespace: "common"
     vendor: "kubernetes"
     default: "true"
-  chart: "stable/prometheus"
+  # TODO: get the prometheus chart upstream
+  #   For now, we read from a local charts repo
+  # chart: "stable/prometheus"
+  chart: "charts/helm/charts/stable/prometheus"
   version: "8.10.2"
   wait: true
   installed: true
   values:
-  - rbac:
+  - cluster:
+      ipv6: true
+    rbac:
       create: true
     alertmanager:
       ingress:
