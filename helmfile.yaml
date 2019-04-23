@@ -5,9 +5,10 @@ helmfiles:
   - helmfile/raw-cluster-role-bindings.yaml
   - helmfile/raw-limit-ranges.yaml
   - helmfile/raw-priority-classes.yaml
-  # metallb does not work with IPV6 yet.
-  #   However, we load it so that LoadBalancer services may get IPs
+  # metallb does not work with IPV6 yet
+  #   Load it so that LoadBalancer services may get IPs as stubs
   - helmfile/metallb.yaml
   - helmfile/nginx-ingress.yaml
-  # Unable to test without a lot of memory and multinode storage
-  #- helmfile/elasticsearch.yaml
+  # Elasticsearch works, but requires a lot of memory ~10GB
+  # - helmfile/elasticsearch.yaml
+  - helmfile/prometheus.yaml

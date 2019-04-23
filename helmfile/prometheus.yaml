@@ -1,0 +1,140 @@
+repositories:
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+
+################################################################################
+## Prometheus ##################################################################
+################################################################################
+
+#
+# References:
+#   - https://github.com/helm/charts/tree/master/stable/prometheus
+#
+
+# https://github.com/prometheus/alertmanager/issues/1756
+
+- name: "prometheus"
+  namespace: "common"
+  labels:
+    chart: "prometheus"
+    repo: "stable"
+    component: "prometheus"
+    namespace: "common"
+    vendor: "kubernetes"
+    default: "true"
+  chart: "stable/prometheus"
+  version: "8.10.2"
+  wait: true
+  installed: true
+  values:
+  - rbac:
+      create: true
+    alertmanager:
+      ingress:
+        enabled: false
+        annotations:
+          kubernetes.io/ingress.class: nginx
+          nginx.ingress.kubernetes.io/auth-type: basic
+          nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
+          nginx.ingress.kubernetes.io/auth-secret: common-basic-auth
+          external-dns.alpha.kubernetes.io/hostname: "alertmanager.__REPLACE_CLUSTER_FQDN__"
+          nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        tls:
+          - secretName: wildcard-production-tls
+            hosts:
+              - alertmanager.__REPLACE_CLUSTER_FQDN__
+      persistentVolume:
+        enabled: true
+        size: 1Gi
+      replicaCount: 1  # Because: https://github.com/kubernetes/charts/issues/2346
+      baseURL: https://alertmanager.__REPLACE_CLUSTER_FQDN__/
+      resources:
+        limits:
+          cpu: 1
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      priorityClassName: common-critical
+    kubeStateMetrics:
+      replicaCount: 1
+      resources:
+        limits:
+          cpu: 1
+          memory: 256Mi
+        requests:
+          cpu: 100m
+          memory: 256Mi
+      priorityClassName: common-critical
+    nodeExporter:
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      resources:
+        limits:
+          cpu: 1
+          memory: 64Mi
+        requests:
+          cpu: 100m
+          memory: 64Mi
+      priorityClassName: common-critical
+    pushgateway:
+      ingress:
+        enabled: false
+        annotations:
+          kubernetes.io/ingress.class: nginx
+          nginx.ingress.kubernetes.io/auth-type: basic
+          nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
+          nginx.ingress.kubernetes.io/auth-secret: common-basic-auth
+          external-dns.alpha.kubernetes.io/hostname: "pushgateway.__REPLACE_CLUSTER_FQDN__"
+          nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        tls:
+          - secretName: wildcard-production-tls
+            hosts:
+              - pushgateway.__REPLACE_CLUSTER_FQDN__
+      replicaCount: 1
+      resources:
+        limits:
+          cpu: 1
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      priorityClassName: common-critical
+    server:
+      ingress:
+        enabled: false
+        annotations:
+          kubernetes.io/ingress.class: nginx
+          nginx.ingress.kubernetes.io/auth-type: basic
+          nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
+          nginx.ingress.kubernetes.io/auth-secret: common-basic-auth
+          external-dns.alpha.kubernetes.io/hostname: "prometheus.__REPLACE_CLUSTER_FQDN__"
+          nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        tls:
+          - secretName: wildcard-production-tls
+            hosts:
+              - prometheus.__REPLACE_CLUSTER_FQDN__
+      persistentVolume:
+        enabled: true
+        size: 8Gi
+        storageClass: hostpath
+      global:
+        evaluation_interval: 30s
+        scrape_interval: 15s
+        scrape_timeout: 10s
+      replicaCount: 1  # Because: https://github.com/prometheus/prometheus/issues/2609
+      baseURL: https://prometheus.__REPLACE_CLUSTER_FQDN__/
+      resources:
+        limits:
+          cpu: 1
+          memory: 2048Mi
+        requests:
+          cpu: 100m
+          memory: 2048Mi
+      priorityClassName: common-critical
+
+{{ readFile "prometheus-alertmanager-files.inc" | fromYaml | toYaml | indent 4 }}
+{{ readFile "prometheus-server-files.inc" | fromYaml | toYaml | indent 4 }}
