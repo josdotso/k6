@@ -56,7 +56,11 @@ spec:
           imagePullPolicy: "{{ .Values.configmapReload.image.pullPolicy }}"
           args:
             - --volume-dir=/etc/config
+          {{- if .Values.cluster.ipv6 }}
+            - --webhook-url=http://[::1]:9090{{ .Values.server.prefixURL }}/-/reload
+          {{- else }}
             - --webhook-url=http://127.0.0.1:9090{{ .Values.server.prefixURL }}/-/reload
+          {{- end }}
           {{- range $key, $value := .Values.configmapReload.extraArgs }}
             - --{{ $key }}={{ $value }}
           {{- end }}

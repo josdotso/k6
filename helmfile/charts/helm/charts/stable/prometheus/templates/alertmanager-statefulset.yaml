@@ -49,9 +49,17 @@ spec:
           args:
             - --config.file=/etc/config/alertmanager.yml
             - --storage.path={{ .Values.alertmanager.persistentVolume.mountPath }}
+          {{- if .Values.cluster.ipv6 }}
+            - --cluster.advertise-address=[$(POD_IP)]:6783
+          {{- else }}
             - --cluster.advertise-address=$(POD_IP):6783
+          {{- end }}
           {{- if .Values.alertmanager.statefulSet.headless.enableMeshPeer }}
+          {{- if .Values.cluster.ipv6 }}
+            - --cluster.listen-address=[::]:6783
+          {{- else }}
             - --cluster.listen-address=0.0.0.0:6783
+          {{- end }}
           {{- range $n := until (.Values.alertmanager.replicaCount | int) }}
             - --cluster.peer={{ template "prometheus.alertmanager.fullname" $ }}-{{ $n }}.{{ template "prometheus.alertmanager.fullname" $ }}-headless:6783
           {{- end }}
